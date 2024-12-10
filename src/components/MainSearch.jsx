@@ -1,32 +1,23 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Container, Row, Col, Form } from "react-bootstrap";
+import { fetchJobs } from "../redux/actions/jobActions";
 import Job from "./Job";
 import Favourites from "./Favourites";
 const MainSearch = () => {
   const [query, setQuery] = useState("");
-  const [jobs, setJobs] = useState([]);
-
-  const baseEndpoint =
-    "https://strive-benchmark.herokuapp.com/api/jobs?search=";
+  const dispatch = useDispatch();
+  const jobs = useSelector((state) => state.jobs.jobs);
+  const loading = useSelector((state) => state.jobs.loading);
+  const error = useSelector((state) => state.jobs.error);
 
   const handleChange = (e) => {
     setQuery(e.target.value);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch(baseEndpoint + query + "&limit=20");
-      if (response.ok) {
-        const { data } = await response.json();
-        setJobs(data);
-      } else {
-        alert("Error fetching results");
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    dispatch(fetchJobs(query));
   };
 
   return (
@@ -46,6 +37,8 @@ const MainSearch = () => {
           </Form>
         </Col>
         <Col xs={10} className="mx-auto mb-5">
+          {loading && <p>Loading...</p>}
+          {error && <p>{error}</p>}
           {jobs.map((jobData) => (
             <Job key={jobData._id} data={jobData} />
           ))}
